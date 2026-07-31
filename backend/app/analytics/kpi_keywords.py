@@ -20,12 +20,34 @@ KPI_KEYWORDS = {
 
     "sales": [
         "sales",
-        "orders"
+        "sales amount",
+        "sales value"
     ],
 
     "cost": [
         "cost",
         "expense"
+    ],
+
+    "customer": [
+        "customer",
+        "customer id",
+        "customer name",
+        "client",
+        "buyer",
+        "customer_number",
+        "customer_code"
+    ],
+
+    "product": [
+        "product",
+        "product name",
+        "item",
+        "item name",
+        "sku",
+        "category",
+        "brand",
+        "product id"
     ],
 
     "employees": [

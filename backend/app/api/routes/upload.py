@@ -7,8 +7,10 @@ router = APIRouter(
     tags=["Upload"]
 )
 
+
 @router.post("/")
 async def upload_csv(file: UploadFile = File(...)):
+
     if not file.filename.endswith(".csv"):
         raise HTTPException(
             status_code=400,
@@ -17,9 +19,21 @@ async def upload_csv(file: UploadFile = File(...)):
 
     content = await file.read()
 
-    result = process_csv(content)
+    try:
+        result = process_csv(content)
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Error while processing CSV file."
+        )
 
     result["filename"] = file.filename
 
     return result
-
