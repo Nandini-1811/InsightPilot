@@ -159,4 +159,35 @@ def process_csv(file_content: bytes):
 
     profile["dashboard"] = dashboard
 
+    print("\n===== ORIGINAL =====")
+    print(original_df.dtypes)
+    print(original_df.isna().sum())
+
+    mapped_df = map_columns(original_df)
+
+    print("\n===== MAPPED =====")
+    print(mapped_df.dtypes)
+    print(mapped_df.isna().sum())
+
+    normalized_df = normalize_dataset(mapped_df)
+
+    print("\n===== NORMALIZED =====")
+    print(normalized_df.dtypes)
+    print(normalized_df.isna().sum())
+
+    detected_kpis = detect_kpis(normalized_df)
+
+    derived_df = generate_derived_fields(
+        normalized_df,
+        detected_kpis
+    )
+
+    print("\n===== DERIVED =====")
+    print(derived_df.dtypes)
+    print(derived_df.isna().sum())
+
+    print("\n===== AFTER BUSINESS ANALYSIS =====")
+    print(derived_df.dtypes)
+    print(derived_df.isna().sum())
+    print(derived_df.head())
     return profile

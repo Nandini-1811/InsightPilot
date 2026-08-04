@@ -1,32 +1,71 @@
+import math
+import pandas as pd
+
+
 def _get_column(detected_kpis, kpi):
     if detected_kpis.get(kpi):
         return detected_kpis[kpi][0]["column"]
     return None
 
 
+def _safe_float(value):
+    if value is None:
+        return None
+
+    if isinstance(value, float) and math.isnan(value):
+        return None
+
+    return float(value)
+
+
 def _calculate_numeric_statistics(df, column):
+
+    df[column] = pd.to_numeric(
+        df[column],
+        errors="coerce"
+    )
+
+    valid_df = df[df[column].notna()]
+
     return {
-        "total": float(df[column].sum()),
-        "average": float(df[column].mean()),
-        "maximum": float(df[column].max()),
-        "minimum": float(df[column].min())
+        "total": _safe_float(valid_df[column].sum()),
+        "average": _safe_float(valid_df[column].mean()),
+        "maximum": _safe_float(valid_df[column].max()),
+        "minimum": _safe_float(valid_df[column].min())
     }
 
 
 def _calculate_snapshot_statistics(df, column):
+
+    df[column] = pd.to_numeric(
+        df[column],
+        errors="coerce"
+    )
+
+    valid_df = df[df[column].notna()]
+
     return {
-        "average": float(df[column].mean()),
-        "maximum": float(df[column].max()),
-        "minimum": float(df[column].min())
+        "average": _safe_float(valid_df[column].mean()),
+        "maximum": _safe_float(valid_df[column].max()),
+        "minimum": _safe_float(valid_df[column].min())
     }
 
 
 def _calculate_percentage_statistics(df, column):
+
+    df[column] = pd.to_numeric(
+        df[column],
+        errors="coerce"
+    )
+
+    valid_df = df[df[column].notna()]
+
     return {
-        "average": float(df[column].mean()),
-        "maximum": float(df[column].max()),
-        "minimum": float(df[column].min())
+        "average": _safe_float(valid_df[column].mean()),
+        "maximum": _safe_float(valid_df[column].max()),
+        "minimum": _safe_float(valid_df[column].min())
     }
+
 
 def _calculate_customer_statistics(df, column):
     return {
@@ -43,6 +82,7 @@ def _calculate_product_statistics(df, column):
             df[column].count() - df[column].nunique()
         )
     }
+
 
 def _get_best_column(detected_kpis, kpi, priority_keywords=None):
 
@@ -61,29 +101,39 @@ def _get_best_column(detected_kpis, kpi, priority_keywords=None):
 
     return columns[0]["column"]
 
+
 def analyze_business(df, detected_kpis):
+
     analysis = {}
 
-    # Revenue
-    revenue_col = _get_column(detected_kpis, "revenue")
+    revenue_col = _get_column(
+        detected_kpis,
+        "revenue"
+    )
+
     if revenue_col:
         analysis["revenue"] = _calculate_numeric_statistics(
             df,
             revenue_col
         )
 
-    # Profit
-    profit_col = _get_column(detected_kpis, "profit")
+
+    profit_col = _get_column(
+        detected_kpis,
+        "profit"
+    )
+
     if profit_col:
         analysis["profit"] = _calculate_numeric_statistics(
             df,
             profit_col
         )
 
-    # Sales
+
     sales_cols = detected_kpis.get("sales")
 
     if sales_cols:
+
         sales_column = None
 
         for item in sales_cols:
@@ -99,36 +149,54 @@ def analyze_business(df, detected_kpis):
             sales_column
         )
 
-    # Cost
-    cost_col = _get_column(detected_kpis, "cost")
+
+    cost_col = _get_column(
+        detected_kpis,
+        "cost"
+    )
+
     if cost_col:
         analysis["cost"] = _calculate_numeric_statistics(
             df,
             cost_col
         )
 
-    # Employees
-    employee_col = _get_column(detected_kpis, "employees")
+
+    employee_col = _get_column(
+        detected_kpis,
+        "employees"
+    )
+
     if employee_col:
         analysis["employees"] = _calculate_snapshot_statistics(
             df,
             employee_col
         )
 
-    # Growth
-    growth_col = _get_column(detected_kpis, "growth")
+
+    growth_col = _get_column(
+        detected_kpis,
+        "growth"
+    )
+
     if growth_col:
         analysis["growth"] = _calculate_percentage_statistics(
             df,
             growth_col
         )
 
-    customer_col = _get_column(detected_kpis, "customer")
+
+    customer_col = _get_column(
+        detected_kpis,
+        "customer"
+    )
+
     if customer_col:
         analysis["customer"] = _calculate_customer_statistics(
             df,
             customer_col
         )
+
 
     product_col = _get_best_column(
         detected_kpis,
@@ -141,10 +209,12 @@ def analyze_business(df, detected_kpis):
             "name"
         ]
     )
+
     if product_col:
         analysis["product"] = _calculate_product_statistics(
             df,
             product_col
         )
+
 
     return analysis
