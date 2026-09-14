@@ -14,7 +14,7 @@ from app.services.normalization_service import normalize_dataset
 from app.services.profiling_service import profile_dataset
 from app.services.quality_service import calculate_quality_score
 from app.services.dashboard_service import generate_dashboard_data
-
+from app.services.chart_service import generate_chart_data
 
 
 def process_csv(file_content: bytes):
@@ -125,6 +125,11 @@ def process_csv(file_content: bytes):
         business_validation
     )
 
+    charts = generate_chart_data(
+        derived_df,
+        detected_kpis,
+    )
+
     dashboard = generate_dashboard_data(
         business_analysis
     )
@@ -157,37 +162,8 @@ def process_csv(file_content: bytes):
         if column not in normalized_df.columns
     ]
 
+    profile["charts"] = charts
+
     profile["dashboard"] = dashboard
 
-    print("\n===== ORIGINAL =====")
-    print(original_df.dtypes)
-    print(original_df.isna().sum())
-
-    mapped_df = map_columns(original_df)
-
-    print("\n===== MAPPED =====")
-    print(mapped_df.dtypes)
-    print(mapped_df.isna().sum())
-
-    normalized_df = normalize_dataset(mapped_df)
-
-    print("\n===== NORMALIZED =====")
-    print(normalized_df.dtypes)
-    print(normalized_df.isna().sum())
-
-    detected_kpis = detect_kpis(normalized_df)
-
-    derived_df = generate_derived_fields(
-        normalized_df,
-        detected_kpis
-    )
-
-    print("\n===== DERIVED =====")
-    print(derived_df.dtypes)
-    print(derived_df.isna().sum())
-
-    print("\n===== AFTER BUSINESS ANALYSIS =====")
-    print(derived_df.dtypes)
-    print(derived_df.isna().sum())
-    print(derived_df.head())
     return profile
