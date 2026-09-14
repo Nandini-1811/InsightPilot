@@ -1,21 +1,32 @@
-import CSVUploader from "@/components/upload/CSVUploader";
+import Background from "@/components/layout/Background";
+import Navbar from "@/components/layout/Navbar";
+import Hero from "@/components/home/Hero";
+import UploadCard from "@/components/upload/UploadCard";
+import Features from "@/components/home/Features";
+import Footer from "@/components/layout/Footer";
+import Stats from "@/components/home/Stats";
+import CTA from "@/components/home/CTA";
+import HowItWorks from "@/components/home/HowItWorks";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-xl w-[500px]">
-        <h1 className="text-4xl font-bold text-black">
-          InsightPilot
-        </h1>
+    <main className="relative min-h-screen overflow-hidden bg-slate-50">
+      <Navbar />
+    <Background />
 
-        <p className="text-gray-600 mt-2">
-          Upload your business data and get AI-powered insights.
-        </p>
+    <Hero />
 
-        <div className="mt-6">
-          <CSVUploader />
-        </div>
-      </div>
+    <Stats />
+
+    <UploadCard />
+
+    <HowItWorks />
+
+    <Features />
+
+    <CTA />
+
+    <Footer />
     </main>
   );
 }
