@@ -1,61 +1,131 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Menu, X } from "lucide-react";
 
-export default function Navbar() {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg">
-            <BarChart3 size={22} />
-          </div>
+type Props = {
+    onUploadClick: () => void;
+};
 
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">
-              InsightPilot
-            </h1>
+export default function Navbar({
+    onUploadClick,
+}: Props) {
+    const [menuOpen, setMenuOpen] = useState(false);
 
-            <p className="text-xs text-slate-500">
-              AI Business Analytics
-            </p>
-          </div>
-        </Link>
+    function handleMobileUpload() {
+        setMenuOpen(false);
+        onUploadClick();
+    }
 
-        {/* Navigation */}
-        <nav className="hidden items-center gap-10 md:flex">
-          <a
-            href="#features"
-            className="text-slate-600 transition hover:text-blue-600"
-          >
-            Features
-          </a>
+    return (
+        <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200 bg-white">
+            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                <div className="flex h-20 items-center justify-between">
+                    {/* Logo */}
+                    <Link
+                        href="/"
+                        className="flex items-center gap-3"
+                        onClick={() => setMenuOpen(false)}
+                    >
+                        <div className="flex h-9 w-9 items-center justify-center border border-slate-200 bg-slate-950 text-white">
+                            <BarChart3 className="h-5 w-5" />
+                        </div>
 
-          <a
-            href="#how-it-works"
-            className="text-slate-600 transition hover:text-blue-600"
-          >
-            How It Works
-          </a>
+                        <div>
+                            <p className="text-base font-semibold tracking-tight text-slate-950">
+                                InsightPilot
+                            </p>
 
-          <a
-            href="#about"
-            className="text-slate-600 transition hover:text-blue-600"
-          >
-            About
-          </a>
-        </nav>
+                            <p className="text-xs text-slate-400">
+                                Analytics workspace
+                            </p>
+                        </div>
+                    </Link>
 
-        {/* CTA */}
-        <a
-          href="#upload"
-          className="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white transition hover:bg-blue-700"
-        >
-          Get Started
-        </a>
-      </div>
-    </header>
-  );
+                    {/* Desktop navigation */}
+                    <nav className="hidden items-center gap-8 md:flex">
+                        <a
+                            href="#features"
+                            className="text-sm font-medium text-slate-500 transition hover:text-slate-950"
+                        >
+                            Features
+                        </a>
+
+                        <a
+                            href="#how-it-works"
+                            className="text-sm font-medium text-slate-500 transition hover:text-slate-950"
+                        >
+                            How it works
+                        </a>
+                    </nav>
+
+                    {/* Desktop CTA */}
+                    <button
+                        type="button"
+                        onClick={onUploadClick}
+                        className="hidden border border-slate-900 bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-sm md:inline-flex"
+                    >
+                        Get started
+                    </button>
+
+                    {/* Mobile menu button */}
+                    <button
+                        type="button"
+                        aria-label={
+                            menuOpen
+                                ? "Close navigation"
+                                : "Open navigation"
+                        }
+                        aria-expanded={menuOpen}
+                        onClick={() =>
+                            setMenuOpen(!menuOpen)
+                        }
+                        className="flex h-10 w-10 items-center justify-center border border-slate-200 text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950 md:hidden"
+                    >
+                        {menuOpen ? (
+                            <X className="h-5 w-5" />
+                        ) : (
+                            <Menu className="h-5 w-5" />
+                        )}
+                    </button>
+                </div>
+
+                {/* Mobile navigation */}
+                {menuOpen && (
+                    <div className="border-t border-slate-200 py-4 md:hidden">
+                        <nav className="flex flex-col">
+                            <a
+                                href="#features"
+                                onClick={() =>
+                                    setMenuOpen(false)
+                                }
+                                className="border-b border-slate-100 py-3 text-sm font-medium text-slate-600 transition-colors hover:text-slate-950"
+                            >
+                                Features
+                            </a>
+
+                            <a
+                                href="#how-it-works"
+                                onClick={() =>
+                                    setMenuOpen(false)
+                                }
+                                className="border-b border-slate-100 py-3 text-sm font-medium text-slate-600 transition-colors hover:text-slate-950"
+                            >
+                                How it works
+                            </a>
+
+                            <button
+                                type="button"
+                                onClick={handleMobileUpload}
+                                className="py-3 text-left text-sm font-medium text-slate-600 transition-colors hover:text-slate-950"
+                            >
+                                Upload dataset
+                            </button>
+                        </nav>
+                    </div>
+                )}
+            </div>
+        </header>
+    );
 }

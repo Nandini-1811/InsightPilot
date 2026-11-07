@@ -29,7 +29,7 @@ export default function ProductNavbar() {
         <header className="border-b border-slate-200 bg-white">
             <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
 
-                <Link href="/overview">
+                <Link href="/">
                     <h1 className="cursor-pointer text-2xl font-extrabold text-blue-600">
                         InsightPilot
                     </h1>

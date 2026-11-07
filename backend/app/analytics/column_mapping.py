@@ -3,29 +3,30 @@ COLUMN_MAPPINGS = {
         "revenue",
         "sales amount",
         "total revenue",
-        "revenue (usd millions)"
+        "revenue (usd millions)",
     ],
     "profit": [
         "profit",
-        "net profit"
+        "net profit",
     ],
     "sales": [
         "sales",
-        "orders"
+        "orders",
     ],
     "cost": [
         "cost",
-        "expense"
+        "expense",
     ],
     "employees": [
         "employees",
-        "employee count"
+        "employee count",
     ],
     "date": [
         "date",
-        "order date"
-    ]
+        "order date",
+    ],
 }
+
 
 ALIAS_TO_CANONICAL = {
     alias: canonical
@@ -35,14 +36,24 @@ ALIAS_TO_CANONICAL = {
 
 
 def map_columns(df):
-    rename_columns = {}
+    """
+    Map columns to semantic meanings without renaming them.
+
+    Example:
+        'Revenue' -> 'revenue'
+        'Employee Count' -> 'employees'
+
+    The original DataFrame column names are preserved.
+    """
+
+    column_mapping = {}
 
     for column in df.columns:
-        normalized = column.strip().lower()
+        normalized = str(column).strip().lower()
 
         canonical = ALIAS_TO_CANONICAL.get(normalized)
 
         if canonical:
-            rename_columns[column] = canonical
+            column_mapping[column] = canonical
 
-    return df.rename(columns=rename_columns)
+    return column_mapping

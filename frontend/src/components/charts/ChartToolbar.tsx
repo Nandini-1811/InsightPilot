@@ -44,6 +44,14 @@ const chartLabels: Record<string, string> = {
     pie: "Pie",
 };
 
+function formatChartName(chart: string) {
+    return (
+        chartLabels[chart] ??
+        chart.charAt(0).toUpperCase() +
+            chart.slice(1)
+    );
+}
+
 export default function ChartToolbar({
     availableCharts,
     selectedChart,
@@ -52,13 +60,11 @@ export default function ChartToolbar({
     onFilterChange,
 }: Props) {
     return (
-        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:flex-row lg:items-center lg:justify-between">
+        <section className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-center lg:justify-between">
 
-            {/* Chart Types */}
-
-            <div className="flex flex-wrap items-center gap-2">
-                <span className="mr-1 text-sm font-semibold text-slate-600">
-                    Chart
+            <div className="flex flex-wrap items-center gap-1">
+                <span className="mr-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Chart type
                 </span>
 
                 {availableCharts.map((chart) => {
@@ -73,26 +79,20 @@ export default function ChartToolbar({
                                 onChartChange(chart)
                             }
                             aria-pressed={active}
-                            className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                            className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
                                 active
-                                    ? "bg-blue-600 text-white shadow-md"
-                                    : "border border-slate-200 bg-white text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                                    ? "border-slate-900 text-slate-950"
+                                    : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-900"
                             }`}
                         >
-                            {chartLabels[chart] ??
-                                chart
-                                    .charAt(0)
-                                    .toUpperCase() +
-                                    chart.slice(1)}
+                            {formatChartName(chart)}
                         </button>
                     );
                 })}
             </div>
 
-            {/* Data Filter */}
-
-            <div className="flex flex-wrap items-center gap-2">
-                <span className="mr-1 text-sm font-semibold text-slate-600">
+            <div className="flex flex-wrap items-center gap-1">
+                <span className="mr-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Show
                 </span>
 
@@ -108,10 +108,10 @@ export default function ChartToolbar({
                                 onFilterChange(filter.id)
                             }
                             aria-pressed={active}
-                            className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                            className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
                                 active
-                                    ? "bg-blue-600 text-white shadow-md"
-                                    : "border border-slate-200 bg-white text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                                    ? "border-slate-900 text-slate-950"
+                                    : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-900"
                             }`}
                         >
                             {filter.label}
@@ -119,6 +119,7 @@ export default function ChartToolbar({
                     );
                 })}
             </div>
-        </div>
+
+        </section>
     );
 }

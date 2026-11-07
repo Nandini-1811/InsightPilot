@@ -3,8 +3,7 @@ import pandas as pd
 
 def get_label_column(df: pd.DataFrame) -> tuple[str | None, str]:
     """
-    Returns:
-    (actual_column_name, display_name)
+    Find the best human-readable column to use as the chart label.
     """
 
     candidates = {
@@ -23,7 +22,7 @@ def get_label_column(df: pd.DataFrame) -> tuple[str | None, str]:
     }
 
     columns = {
-        column.lower(): column
+        str(column).strip().lower(): column
         for column in df.columns
     }
 
@@ -36,7 +35,7 @@ def get_label_column(df: pd.DataFrame) -> tuple[str | None, str]:
 
 def get_metric_unit(metric: str) -> str:
     """
-    Display unit for each KPI.
+    Return the display unit for a metric.
     """
 
     units = {
@@ -60,41 +59,113 @@ def build_metric_chart(
     metric_column: str,
     metric_title: str,
     label_column: str | None,
+    label_name: str,
+    aggregation: str | None = "sum",
 ):
     """
-    Builds the complete chart response for a KPI.
+    Build the complete chart response for one KPI.
+
+    Additive metrics can be aggregated by the detected
+    label column.
+
+    Snapshot/non-additive metrics can skip aggregation.
     """
 
-    rows = []
+    if metric_column not in df.columns:
+        return None
 
-    for index, row in df.iterrows():
+    working_df = df.copy()
 
-        value = row[metric_column]
+    working_df[metric_column] = pd.to_numeric(
+        working_df[metric_column],
+        errors="coerce",
+    )
 
-        if pd.isna(value):
-            continue
+    working_df = working_df.dropna(
+        subset=[metric_column]
+    )
 
-        label = (
-            str(row[label_column])
-            if label_column
-            else f"Record {index + 1}"
+    if working_df.empty:
+        return None
+
+    # -------------------------------------------------
+    # Additive metrics
+    # -------------------------------------------------
+
+    if (
+        label_column
+        and label_column in working_df.columns
+        and aggregation == "sum"
+    ):
+        working_df[label_column] = (
+            working_df[label_column]
+            .fillna("Unknown")
+            .astype(str)
+            .str.strip()
         )
 
-        rows.append(
+        working_df.loc[
+            working_df[label_column] == "",
+            label_column,
+        ] = "Unknown"
+
+        chart_df = (
+            working_df
+            .groupby(
+                label_column,
+                as_index=False,
+            )[metric_column]
+            .sum()
+            .rename(
+                columns={
+                    label_column: "name",
+                    metric_column: "value",
+                }
+            )
+        )
+
+    # -------------------------------------------------
+    # Non-additive metrics
+    # -------------------------------------------------
+
+    else:
+        chart_df = pd.DataFrame(
             {
-                "name": label,
-                "value": float(value),
+                "name": [
+                    str(row[label_column])
+                    if label_column
+                    else f"Record {index + 1}"
+                    for index, row in working_df.iterrows()
+                ],
+                "value": [
+                    float(value)
+                    for value in working_df[metric_column]
+                ],
             }
         )
 
-    if not rows:
+    if chart_df.empty:
         return None
 
+    chart_df["value"] = pd.to_numeric(
+        chart_df["value"],
+        errors="coerce",
+    )
+
+    chart_df["value"] = chart_df["value"].astype(float)
+
     chart_df = (
-        pd.DataFrame(rows)
-        .sort_values("value", ascending=False)
+        chart_df
+        .dropna(subset=["value"])
+        .sort_values(
+            "value",
+            ascending=False,
+        )
         .reset_index(drop=True)
     )
+
+    if chart_df.empty:
+        return None
 
     values = chart_df["value"]
 
@@ -123,32 +194,55 @@ def build_metric_chart(
 
         "labelKey": "name",
 
+        "labelName": label_name,
+
         "valueKey": "value",
 
         "summary": {
-            "total": round(values.sum(), 2),
+            "total": round(
+                values.sum(),
+                2,
+            ),
 
-            "average": round(values.mean(), 2),
+            "average": round(
+                values.mean(),
+                2,
+            ),
 
             "highest": {
-                "label": highest_row["name"],
-                "value": round(highest_row["value"], 2),
+                "name": str(
+                    highest_row["name"]
+                ),
+                "value": round(
+                    float(highest_row["value"]),
+                    2,
+                ),
             },
 
             "lowest": {
-                "label": lowest_row["name"],
-                "value": round(lowest_row["value"], 2),
+                "name": str(
+                    lowest_row["name"]
+                ),
+                "value": round(
+                    float(lowest_row["value"]),
+                    2,
+                ),
             },
 
-            "records": len(chart_df),
+            "records": int(
+                len(chart_df)
+            ),
 
-            "topPerformer": highest_row["name"],
+            "topPerformer": str(
+                highest_row["name"]
+            ),
 
-            "unit": get_metric_unit(metric_column),
+            "unit": get_metric_unit(
+                metric_column.lower()
+            ),
         },
 
         "charts": {
-
             "bar": {
                 "xKey": "name",
                 "yKey": "value",
@@ -181,63 +275,86 @@ def generate_chart_data(
     detected_kpis: dict,
 ):
     """
-    Generates chart-ready data for every detected KPI.
-
-    Backend responsibilities:
-    - Detect available KPIs
-    - Generate summary statistics
-    - Return complete datasets
-    - Support multiple chart types
-
-    Frontend responsibilities:
-    - Top 5 / Top 10 / Top 20 / All
-    - Chart switching
-    - Metric switching
-    - Animations
+    Generate chart-ready data for every detected KPI.
     """
 
     charts = {}
 
-    label_column, _ = get_label_column(df)
+    label_column, label_name = get_label_column(df)
 
     metric_mapping = {
-
-        "revenue": "Revenue",
-
-        "profit": "Profit",
-
-        "cost": "Cost",
-
-        "expenses": "Expenses",
-
-        "sales": "Sales",
-
-        "orders": "Orders",
-
-        "customers": "Customers",
-
-        "employees": "Employees",
-
-        "growth": "Growth",
-
-        "margin": "Margin",
+        "revenue": {
+            "title": "Revenue",
+            "aggregation": "sum",
+        },
+        "profit": {
+            "title": "Profit",
+            "aggregation": "sum",
+        },
+        "cost": {
+            "title": "Cost",
+            "aggregation": "sum",
+        },
+        "expenses": {
+            "title": "Expenses",
+            "aggregation": "sum",
+        },
+        "sales": {
+            "title": "Sales",
+            "aggregation": "sum",
+        },
+        "orders": {
+            "title": "Orders",
+            "aggregation": "sum",
+        },
+        "customers": {
+            "title": "Customers",
+            "aggregation": None,
+        },
+        "employees": {
+            "title": "Employees",
+            "aggregation": None,
+        },
+        "growth": {
+            "title": "Growth",
+            "aggregation": None,
+        },
+        "margin": {
+            "title": "Margin",
+            "aggregation": None,
+        },
     }
 
-    for metric_key, metric_title in metric_mapping.items():
+    for metric_key, definition in metric_mapping.items():
+
+        detected = detected_kpis.get(
+            metric_key,
+            [],
+        )
+
+        if not detected:
+            continue
+
+        metric_column = detected[0].get(
+            "column"
+        )
 
         if (
-            detected_kpis.get(metric_key)
-            and metric_key in df.columns
+            not metric_column
+            or metric_column not in df.columns
         ):
+            continue
 
-            metric_chart = build_metric_chart(
-                df=df,
-                metric_column=metric_key,
-                metric_title=metric_title,
-                label_column=label_column,
-            )
+        metric_chart = build_metric_chart(
+            df=df,
+            metric_column=metric_column,
+            metric_title=definition["title"],
+            label_column=label_column,
+            label_name=label_name,
+            aggregation=definition["aggregation"],
+        )
 
-            if metric_chart:
-                charts[metric_key] = metric_chart
+        if metric_chart:
+            charts[metric_key] = metric_chart
 
     return charts

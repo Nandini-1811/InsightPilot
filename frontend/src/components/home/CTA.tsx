@@ -1,29 +1,37 @@
 "use client";
 
 export default function CTA() {
-  return (
-    <section className="py-12">
-      <div className="mx-auto max-w-5xl px-6">
-        <div className="rounded-[32px] bg-gradient-to-r from-blue-600 to-indigo-700 p-14 text-center text-white shadow-2xl">
+    return (
+        <section className="border-t border-slate-200 bg-white py-20">
+            <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
-          <h2 className="text-5xl font-bold">
-            Ready to Understand Your Business?
-          </h2>
+                <div className="flex flex-col gap-8 border-y border-slate-200 py-10 md:flex-row md:items-center md:justify-between">
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-blue-100">
-            Upload your CSV and let InsightPilot generate dashboards,
-            AI insights, business health scores and recommendations in seconds.
-          </p>
+                    <div className="max-w-2xl">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            Get started
+                        </p>
 
-          <a
-            href="#upload"
-            className="mt-10 inline-block rounded-xl bg-white px-8 py-4 text-lg font-semibold text-blue-700 transition hover:scale-105"
-          >
-            Upload Your First CSV
-          </a>
+                        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                            Bring your dataset into InsightPilot.
+                        </h2>
 
-        </div>
-      </div>
-    </section>
-  );
+                        <p className="mt-3 text-base leading-7 text-slate-500">
+                            Upload a CSV to see what your data can support
+                            and explore the resulting analytics workspace.
+                        </p>
+                    </div>
+
+                    <a
+                        href="#upload"
+                        className="inline-flex shrink-0 items-center justify-center border border-slate-900 bg-slate-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                    >
+                        Upload CSV
+                    </a>
+
+                </div>
+
+            </div>
+        </section>
+    );
 }

@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
-import ProductNavbar from "@/components/layout/ProductNavbar";
-import Breadcrumb from "@/components/common/BreadCrumb";
-import QuickActions from "@/components/common/QuickActions";
-
+import WorkspaceShell from "@/components/layout/WorkspaceShell";
 import ChartsSection from "@/components/charts/ChartsSection";
 
 export default function ChartsPage() {
@@ -15,102 +13,165 @@ export default function ChartsPage() {
         const stored = sessionStorage.getItem("analysis");
 
         if (stored) {
-            setAnalysis(JSON.parse(stored));
+            try {
+                setAnalysis(JSON.parse(stored));
+            } catch {
+                setAnalysis(null);
+            }
         }
     }, []);
 
     if (!analysis) {
         return (
-            <main className="min-h-screen bg-slate-100">
-                <ProductNavbar />
-
-                <div className="mx-auto max-w-7xl px-6 py-10">
-
-                    <h1 className="text-3xl font-bold text-slate-900">
-                        No Analysis Found
-                    </h1>
-
-                    <p className="mt-2 text-slate-600">
-                        Upload a CSV to generate business charts.
+            <WorkspaceShell>
+                <div className="mx-auto max-w-5xl px-6 py-16 lg:px-8">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        Business
                     </p>
 
+                    <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+                        No dataset loaded
+                    </h1>
+
+                    <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">
+                        Upload a CSV from the home page to generate
+                        business charts.
+                    </p>
+
+                    <Link
+                        href="/"
+                        className="mt-6 inline-flex border border-slate-900 bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+                    >
+                        Upload dataset
+                    </Link>
                 </div>
-            </main>
+            </WorkspaceShell>
         );
     }
 
+    const charts = analysis.charts ?? {};
+
+    const chartEntries = Object.entries(charts);
+
     return (
-        <main className="min-h-screen bg-slate-100">
+        <WorkspaceShell>
+            <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
 
-            <ProductNavbar />
+                {/* Page header */}
+                <section className="border-b border-slate-200 pb-8">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
 
-            <div className="mx-auto max-w-7xl px-6 py-8">
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                                Business
+                            </p>
 
-                <Breadcrumb
-                    items={[
-                        {
-                            label: "Overview",
-                            href: "/overview",
-                        },
-                        {
-                            label: "Business Health",
-                            href: "/health",
-                        },
-                        {
-                            label: "Charts",
-                        },
-                    ]}
-                />
+                            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+                                Charts
+                            </h1>
 
-                <div className="mb-10">
+                            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+                                Explore detected business metrics through
+                                interactive visualizations.
+                            </p>
+                        </div>
 
-                    <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
-                        InsightPilot
-                    </p>
+                        <div className="flex items-center gap-6 text-sm">
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                    Metrics
+                                </p>
 
-                    <h1 className="mt-2 text-4xl font-bold text-slate-900">
-                        Interactive Business Charts
-                    </h1>
+                                <p className="mt-1 font-semibold text-slate-900">
+                                    {chartEntries.length}
+                                </p>
+                            </div>
 
-                    <p className="mt-3 max-w-3xl text-slate-600">
-                        Explore each business metric using interactive
-                        visualizations. Switch metrics, chart types and
-                        compare Top 5, Top 10, Top 20 or the complete
-                        dataset instantly.
-                    </p>
+                            <div className="h-8 w-px bg-slate-200" />
 
-                </div>
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                    Dataset
+                                </p>
 
-                <ChartsSection charts={analysis.charts} />
+                                <p className="mt-1 max-w-48 truncate font-medium text-slate-700">
+                                    {analysis.filename ?? "Current dataset"}
+                                </p>
+                            </div>
+                        </div>
 
-                <QuickActions
-                    actions={[
-                        {
-                            title: "Overview",
-                            description:
-                                "Return to your executive dashboard.",
-                            href: "/overview",
-                            color: "bg-sky-500",
-                        },
-                        {
-                            title: "Business Health",
-                            description:
-                                "Review your health score and business quality.",
-                            href: "/health",
-                            color: "bg-green-500",
-                        },
-                        {
-                            title: "AI Summary",
-                            description:
-                                "Understand what your business data means.",
-                            href: "/insights",
-                            color: "bg-purple-500",
-                        },
-                    ]}
-                />
+                    </div>
+                </section>
+
+                {/* Analytical context */}
+                <section className="border-b border-slate-200 py-6">
+                    <div className="grid gap-6 md:grid-cols-3">
+
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                What you are seeing
+                            </p>
+
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                                Charts are generated from the business metrics
+                                InsightPilot detected in your dataset.
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                How values are grouped
+                            </p>
+
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                                Additive metrics such as revenue, profit,
+                                cost, and sales are aggregated by the
+                                detected business dimension.
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Data-aware analysis
+                            </p>
+
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                                Snapshot metrics such as employee counts are
+                                kept as observations rather than incorrectly
+                                summed across products.
+                            </p>
+                        </div>
+
+                    </div>
+                </section>
+
+                {/* Charts */}
+                <section className="py-8">
+                    {chartEntries.length > 0 ? (
+                        <ChartsSection charts={charts} />
+                    ) : (
+                        <div className="border border-slate-200 bg-white px-6 py-12 text-center">
+                            <p className="text-sm font-medium text-slate-900">
+                                No chartable metrics detected
+                            </p>
+
+                            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">
+                                InsightPilot could not find enough supported
+                                business metrics to generate charts for this
+                                dataset.
+                            </p>
+
+                            <Link
+                                href="/readiness"
+                                className="mt-5 inline-flex border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+                            >
+                                View analysis readiness
+                            </Link>
+                        </div>
+                    )}
+                </section>
 
             </div>
-
-        </main>
+        </WorkspaceShell>
     );
 }

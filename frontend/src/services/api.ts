@@ -20,8 +20,10 @@ export async function uploadCSV(file: File) {
     );
 
     if (!response.ok) {
+        const errorData = await response.json();
+
         throw new Error(
-            "Failed to upload CSV"
+            errorData.detail || "Failed to upload CSV"
         );
     }
 
