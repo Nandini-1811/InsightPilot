@@ -89,13 +89,17 @@ function percent(value?: number) {
 function PerformanceBlock({
     title,
     data,
+    unit = "currency",
 }: {
     title: string;
     data?: NumericStatistics;
+    unit?: "currency" | "number";
 }) {
     if (!data) {
         return null;
     }
+
+    const format = unit === "currency" ? currency : number;
 
     return (
         <section className="border-t border-slate-200 py-8">
@@ -106,22 +110,22 @@ function PerformanceBlock({
             <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                 <Metric
                     label="Total"
-                    value={currency(data.total)}
+                    value={format(data.total)}
                 />
 
                 <Metric
                     label="Average"
-                    value={currency(data.average)}
+                    value={format(data.average)}
                 />
 
                 <Metric
                     label="Maximum"
-                    value={currency(data.maximum)}
+                    value={format(data.maximum)}
                 />
 
                 <Metric
                     label="Minimum"
-                    value={currency(data.minimum)}
+                    value={format(data.minimum)}
                 />
             </div>
         </section>
@@ -380,6 +384,7 @@ export default function PerformancePage() {
                     <PerformanceBlock
                         title="Sales"
                         data={business.sales}
+                        unit="number"
                     />
                 )}
 

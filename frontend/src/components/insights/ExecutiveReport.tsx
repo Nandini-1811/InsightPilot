@@ -1,288 +1,166 @@
 "use client";
 
-type Confidence = {
-    level?: "High" | "Medium" | "Low";
-    reason?: string;
-};
-
-type AISummary = {
-    overall_condition?: string;
-    key_findings?: string[];
-    risks?: string[];
-    opportunities?: string[];
-    next_actions?: string[];
-    data_limitations?: string[];
-    confidence?: Confidence;
-};
+import type { AISummary } from "@/context/AISummaryContext";
 
 type Props = {
     summary: AISummary;
 };
 
-function SectionHeader({
+function normalize(text: string) {
+    return text.trim().toLowerCase().replace(/[.\s]+$/g, "");
+}
+
+function Section({
     label,
     title,
+    children,
 }: {
     label: string;
     title: string;
+    children: React.ReactNode;
 }) {
     return (
-        <div className="mb-5">
-            <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
+        <section className="border-t border-slate-200 py-8 first:border-t-0">
+            <p className="text-sm font-medium uppercase tracking-wide text-slate-400">
                 {label}
             </p>
 
-            <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                {title}
-            </h2>
+            <h2 className="mt-1 text-2xl font-semibold">{title}</h2>
+
+            <div className="mt-5">{children}</div>
+        </section>
+    );
+}
+
+function ItemList({
+    items,
+    empty,
+    numbered = false,
+}: {
+    items?: string[];
+    empty: string;
+    numbered?: boolean;
+}) {
+    if (!items?.length) {
+        return <p className="text-sm text-slate-500">{empty}</p>;
+    }
+
+    return (
+        <div className="divide-y divide-slate-200 border-y border-slate-200">
+            {items.map((item, index) => (
+                <div key={index} className="flex gap-5 py-4">
+                    {numbered && (
+                        <span className="w-6 shrink-0 text-base font-medium tabular-nums text-slate-400">
+                            {String(index + 1).padStart(2, "0")}
+                        </span>
+                    )}
+
+                    <p className="text-base leading-7 text-slate-700">
+                        {item}
+                    </p>
+                </div>
+            ))}
         </div>
     );
 }
 
 export default function ExecutiveReport({ summary }: Props) {
+    // Opportunities and next actions are often word-for-word identical.
+    // Only show opportunities that add something beyond the action list.
+    const actionKeys = new Set(
+        (summary.next_actions ?? []).map(normalize)
+    );
+
+    const distinctOpportunities = (summary.opportunities ?? []).filter(
+        (item) => !actionKeys.has(normalize(item))
+    );
+
+    const level = summary.confidence?.level;
+
     return (
-        <div className="space-y-8">
+        <div>
+            <Section
+                label="Executive assessment"
+                title="Overall business condition"
+            >
+                <p className="max-w-4xl text-lg leading-8 text-slate-700">
+                    {summary.overall_condition ||
+                        "No overall business condition was generated."}
+                </p>
+            </Section>
 
-            {/* Overall Condition */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
-                <SectionHeader
-                    label="Executive Assessment"
-                    title="Overall Business Condition"
+            <Section label="What the data says" title="Key findings">
+                <ItemList
+                    numbered
+                    items={summary.key_findings}
+                    empty="No key findings were generated."
                 />
+            </Section>
 
-                <div className="rounded-2xl bg-slate-50 p-6">
-                    <p className="text-lg leading-8 text-slate-700">
-                        {summary.overall_condition ||
-                            "No overall business condition was generated."}
-                    </p>
-                </div>
-
-            </section>
-
-
-            {/* Key Findings */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
-                <SectionHeader
-                    label="What The Data Says"
-                    title="Key Findings"
+            <Section label="Risk assessment" title="Risks">
+                <ItemList
+                    items={summary.risks}
+                    empty="No evidence-based risks were identified from the available data."
                 />
+            </Section>
 
-                <div className="space-y-4">
+            {distinctOpportunities.length > 0 && (
+                <Section label="Growth potential" title="Opportunities">
+                    <ItemList items={distinctOpportunities} empty="" />
+                </Section>
+            )}
 
-                    {summary.key_findings?.length ? (
-                        summary.key_findings.map((finding, index) => (
-                            <div
-                                key={index}
-                                className="flex gap-4 rounded-2xl bg-slate-50 p-5"
-                            >
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                    {index + 1}
-                                </div>
-
-                                <p className="leading-7 text-slate-700">
-                                    {finding}
-                                </p>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-slate-500">
-                            No key findings were generated.
-                        </p>
-                    )}
-
-                </div>
-
-            </section>
-
-
-            {/* Risks */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
-                <SectionHeader
-                    label="Risk Assessment"
-                    title="Risks"
+            <Section label="Action plan" title="Next actions">
+                <ItemList
+                    numbered
+                    items={summary.next_actions}
+                    empty="No next actions were generated."
                 />
+            </Section>
 
-                <div className="space-y-4">
-
-                    {summary.risks?.length ? (
-                        summary.risks.map((risk, index) => (
-                            <div
-                                key={index}
-                                className="rounded-2xl border border-red-100 bg-red-50 p-5"
-                            >
-                                <div className="flex gap-3">
-
-                                    <span className="mt-0.5 text-lg text-red-600">
-                                        ⚠
-                                    </span>
-
-                                    <p className="leading-7 text-slate-700">
-                                        {risk}
-                                    </p>
-
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-slate-500">
-                            No risks were identified from the available data.
-                        </p>
-                    )}
-
-                </div>
-
-            </section>
-
-
-            {/* Opportunities */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
-                <SectionHeader
-                    label="Growth Potential"
-                    title="Opportunities"
-                />
-
-                <div className="space-y-4">
-
-                    {summary.opportunities?.length ? (
-                        summary.opportunities.map((opportunity, index) => (
-                            <div
-                                key={index}
-                                className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5"
-                            >
-                                <div className="flex gap-3">
-
-                                    <span className="mt-0.5 text-lg text-emerald-600">
-                                        →
-                                    </span>
-
-                                    <p className="leading-7 text-slate-700">
-                                        {opportunity}
-                                    </p>
-
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-slate-500">
-                            No opportunities were identified from the available data.
-                        </p>
-                    )}
-
-                </div>
-
-            </section>
-
-
-            {/* Next Actions */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
-                <SectionHeader
-                    label="Action Plan"
-                    title="Next Actions"
-                />
-
-                <div className="space-y-4">
-
-                    {summary.next_actions?.length ? (
-                        summary.next_actions.map((action, index) => (
-                            <div
-                                key={index}
-                                className="flex gap-4 rounded-2xl bg-slate-50 p-5"
-                            >
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
-                                    {index + 1}
-                                </div>
-
-                                <p className="leading-7 text-slate-700">
-                                    {action}
-                                </p>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-slate-500">
-                            No next actions were generated.
-                        </p>
-                    )}
-
-                </div>
-
-            </section>
-
-
-            {/* Data Limitations */}
             {summary.data_limitations?.length ? (
-                <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
-                    <SectionHeader
-                        label="Data Coverage"
-                        title="Data Limitations"
-                    />
-
-                    <p className="mb-5 text-slate-600">
-                        The following KPI categories were unavailable and therefore
-                        limited the scope of the AI analysis.
+                <Section label="Data coverage" title="Data limitations">
+                    <p className="mb-4 text-base text-slate-500">
+                        These KPI categories were not available, which limits
+                        the scope of the analysis.
                     </p>
 
-                    <div className="flex flex-wrap gap-3">
-
-                        {summary.data_limitations.map(
-                            (limitation, index) => (
-                                <span
-                                    key={index}
-                                    className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium capitalize text-slate-700"
-                                >
-                                    {limitation}
-                                </span>
-                            )
-                        )}
-
+                    <div className="flex flex-wrap gap-2">
+                        {summary.data_limitations.map((item, index) => (
+                            <span
+                                key={index}
+                                className="border border-slate-200 px-3 py-1.5 text-sm font-medium capitalize text-slate-700"
+                            >
+                                {item}
+                            </span>
+                        ))}
                     </div>
-
-                </section>
+                </Section>
             ) : null}
 
-
-            {/* Confidence */}
             {summary.confidence && (
-                <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
-                    <SectionHeader
-                        label="AI Assessment"
-                        title="Confidence"
-                    />
-
-                    <div className="flex flex-col gap-5 rounded-2xl bg-slate-50 p-6 sm:flex-row sm:items-start">
-
-                        <div className="shrink-0">
-
+                <Section label="AI assessment" title="Confidence">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                        <span className="inline-flex shrink-0 items-center gap-2 border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-900">
                             <span
-                                className={`inline-flex rounded-full px-4 py-2 text-sm font-semibold ${
-                                    summary.confidence.level === "High"
-                                        ? "bg-emerald-100 text-emerald-700"
-                                        : summary.confidence.level === "Medium"
-                                        ? "bg-amber-100 text-amber-700"
-                                        : "bg-red-100 text-red-700"
+                                className={`h-2 w-2 rounded-full ${
+                                    level === "High"
+                                        ? "bg-emerald-500"
+                                        : level === "Medium"
+                                        ? "bg-amber-500"
+                                        : "bg-red-500"
                                 }`}
-                            >
-                                {summary.confidence.level || "Unknown"}
-                            </span>
+                            />
+                            {level ?? "Unknown"}
+                        </span>
 
-                        </div>
-
-                        <p className="leading-7 text-slate-600">
+                        <p className="max-w-3xl text-base leading-7 text-slate-600">
                             {summary.confidence.reason ||
                                 "No confidence explanation was provided."}
                         </p>
-
                     </div>
-
-                </section>
+                </Section>
             )}
-
         </div>
     );
 }

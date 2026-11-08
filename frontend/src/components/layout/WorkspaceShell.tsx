@@ -10,6 +10,8 @@ import {
     X,
 } from "lucide-react";
 
+import { useAISummary } from "@/context/AISummaryContext";
+
 type AnalysisMeta = {
     filename?: string;
     rows?: number;
@@ -25,6 +27,34 @@ type AnalysisMeta = {
 type Props = {
     children: React.ReactNode;
 };
+
+// Small marker next to "Insights": pulsing while the AI summary is being
+// prepared, green when it is ready.
+function NavStatus({ href }: { href: string }) {
+    const { status } = useAISummary();
+
+    if (href !== "/insights") return null;
+
+    if (status === "loading") {
+        return (
+            <span
+                title="AI summary is being prepared"
+                className="h-1.5 w-1.5 animate-pulse rounded-full bg-slate-400"
+            />
+        );
+    }
+
+    if (status === "ready") {
+        return (
+            <span
+                title="AI summary is ready"
+                className="h-1.5 w-1.5 rounded-full bg-emerald-500"
+            />
+        );
+    }
+
+    return null;
+}
 
 const navigation = [
     {
@@ -161,14 +191,13 @@ export default function WorkspaceShell({
                                                     item.href
                                                 }
                                                 className={`group flex items-center justify-between border-l-2 px-3 py-2.5 text-[15px] transition-all duration-200 ${active
-                                                        ? "border-slate-900 bg-slate-100 font-semibold text-slate-950"
-                                                        : "border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                                                    ? "border-slate-900 bg-slate-100 font-semibold text-slate-950"
+                                                    : "border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-950"
                                                     }`}
                                             >
-                                                <span>
-                                                    {
-                                                        item.label
-                                                    }
+                                                <span className="flex items-center gap-2">
+                                                    {item.label}
+                                                    <NavStatus href={item.href} />
                                                 </span>
 
                                                 {active && (
@@ -282,14 +311,13 @@ export default function WorkspaceShell({
                                                                 )
                                                             }
                                                             className={`flex items-center justify-between border-l-2 px-3 py-3 text-[15px] transition-colors ${active
-                                                                    ? "border-slate-900 bg-slate-100 font-semibold text-slate-950"
-                                                                    : "border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                                                                ? "border-slate-900 bg-slate-100 font-semibold text-slate-950"
+                                                                : "border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-950"
                                                                 }`}
                                                         >
-                                                            <span>
-                                                                {
-                                                                    item.label
-                                                                }
+                                                            <span className="flex items-center gap-2">
+                                                                {item.label}
+                                                                <NavStatus href={item.href} />
                                                             </span>
 
                                                             {active && (

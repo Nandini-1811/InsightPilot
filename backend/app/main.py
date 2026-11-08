@@ -12,12 +12,14 @@ app = FastAPI(
 )
 
 
-# Allow Next.js frontend to communicate with FastAPI backend
+# Allow the Next.js frontend to communicate with the FastAPI backend.
+# Origins come from the ALLOWED_ORIGINS env var (comma-separated), e.g.
+# "http://localhost:3000,https://your-app.vercel.app".
+# ALLOWED_ORIGIN_REGEX is optional (e.g. to allow Vercel preview URLs).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000"
-    ],
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origin_regex=settings.ALLOWED_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

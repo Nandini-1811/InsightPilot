@@ -2,7 +2,7 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
+import { AISummaryProvider } from "@/context/AISummaryContext";
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 
@@ -15,7 +15,7 @@ export default function RootLayout({
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body>
         <TooltipProvider>
-          {children}
+          <AISummaryProvider>{children}</AISummaryProvider>
         </TooltipProvider>
       </body>
     </html>

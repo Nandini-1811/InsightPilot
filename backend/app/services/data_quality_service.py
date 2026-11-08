@@ -602,6 +602,8 @@ def clean_dataset(
 
         "missing_cells": missing_cells,
 
+        "duplicate_rows": duplicate_rows_remaining,
+
         "dimensions": {
             "completeness": completeness,
             "uniqueness": uniqueness,

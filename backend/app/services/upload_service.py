@@ -241,10 +241,6 @@ def process_csv(file_content: bytes):
         original_df
     )
 
-    print("========== AFTER CLEANING ==========")
-    print(cleaned_df.dtypes)
-    print(cleaned_df.head())
-    print("====================================")
     
 
     if cleaned_df.empty:
@@ -273,17 +269,8 @@ def process_csv(file_content: bytes):
 
     column_mapping = map_columns(cleaned_df)
 
-    print("========== COLUMN MAPPING ===========")
-    print(column_mapping)
-    print("=====================================")
-
 
     normalized_df = normalize_dataset(cleaned_df)
-
-    print("========== AFTER NORMALIZATION =====")
-    print(normalized_df.dtypes)
-    print(normalized_df.head())
-    print("====================================")
 
     if normalized_df.empty:
         raise ValueError(
@@ -344,7 +331,7 @@ def process_csv(file_content: bytes):
     # =========================================================
 
     profile = profile_dataset(
-        derived_df
+        normalized_df
     )
 
     # =========================================================
@@ -440,7 +427,7 @@ def process_csv(file_content: bytes):
     # =========================================================
 
     profile["column_names"] = (
-        derived_df.columns.tolist()
+        normalized_df.columns.tolist()
     )
 
     # -------------------------

@@ -1,5 +1,20 @@
-const API_BASE_URL =
-    "http://127.0.0.1:8000";
+// Set NEXT_PUBLIC_API_URL in Vercel (and in frontend/.env.local for local dev).
+// It is read at build time, so redeploy the frontend after changing it.
+const API_BASE_URL = (
+    process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
+
+
+// Read the backend's error message if there is one. Proxies (Railway, Vercel)
+// can return an HTML error page, so a failed JSON parse must not hide the real failure.
+async function readErrorDetail(response: Response): Promise<string | null> {
+    try {
+        const errorData = await response.json();
+        return typeof errorData?.detail === "string" ? errorData.detail : null;
+    } catch {
+        return null;
+    }
+}
 
 
 export async function uploadCSV(file: File) {
@@ -20,10 +35,8 @@ export async function uploadCSV(file: File) {
     );
 
     if (!response.ok) {
-        const errorData = await response.json();
-
         throw new Error(
-            errorData.detail || "Failed to upload CSV"
+            (await readErrorDetail(response)) || "Failed to upload CSV"
         );
     }
 
@@ -53,7 +66,7 @@ export async function generateAISummary(analysisData: any) {
 
     if (!response.ok) {
         throw new Error(
-            "Failed to generate AI summary"
+            (await readErrorDetail(response)) || "Failed to generate AI summary"
         );
     }
 

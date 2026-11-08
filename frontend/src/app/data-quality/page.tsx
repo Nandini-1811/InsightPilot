@@ -83,8 +83,7 @@ export default function DataQualityPage() {
     }
 
     const quality = analysis.data_quality;
-    console.log("DATA QUALITY:", quality);
-
+    
     return (
         <WorkspaceShell>
 

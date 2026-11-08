@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { uploadCSV } from "@/services/api";
+import { useAISummary } from "@/context/AISummaryContext";
 
 type Props = {
     embedded?: boolean;
@@ -44,7 +45,7 @@ export default function UploadCard({
     onSuccess,
 }: Props) {
     const router = useRouter();
-
+        const { start: startAISummary } = useAISummary();
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const [file, setFile] = useState<File | null>(null);
@@ -112,6 +113,10 @@ export default function UploadCard({
                     result.analysis_id
                 );
             }
+
+            
+            // Start the AI summary in the background right after upload.
+            startAISummary(result);
 
             if (onSuccess) {
                 onSuccess(result);
