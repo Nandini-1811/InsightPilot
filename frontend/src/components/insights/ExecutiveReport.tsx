@@ -6,9 +6,6 @@ type Props = {
     summary: AISummary;
 };
 
-function normalize(text: string) {
-    return text.trim().toLowerCase().replace(/[.\s]+$/g, "");
-}
 
 function Section({
     label,
@@ -65,15 +62,6 @@ function ItemList({
 }
 
 export default function ExecutiveReport({ summary }: Props) {
-    // Opportunities and next actions are often word-for-word identical.
-    // Only show opportunities that add something beyond the action list.
-    const actionKeys = new Set(
-        (summary.next_actions ?? []).map(normalize)
-    );
-
-    const distinctOpportunities = (summary.opportunities ?? []).filter(
-        (item) => !actionKeys.has(normalize(item))
-    );
 
     const level = summary.confidence?.level;
 
@@ -103,12 +91,6 @@ export default function ExecutiveReport({ summary }: Props) {
                     empty="No evidence-based risks were identified from the available data."
                 />
             </Section>
-
-            {distinctOpportunities.length > 0 && (
-                <Section label="Growth potential" title="Opportunities">
-                    <ItemList items={distinctOpportunities} empty="" />
-                </Section>
-            )}
 
             <Section label="Action plan" title="Next actions">
                 <ItemList

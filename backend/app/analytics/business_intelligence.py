@@ -184,9 +184,6 @@ def _calculate_product_statistics(
     return {
         "records": records,
         "unique_products": unique_products,
-        "duplicate_products": (
-            records - unique_products
-        ),
     }
 
 

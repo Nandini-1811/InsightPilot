@@ -106,29 +106,17 @@ def generate_recommendations(
 
     if product:
 
-        duplicates = product.get("duplicate_products", 0)
-
-        if duplicates > 0:
-
-            recommendations.append({
-                "priority": "medium",
-                "area": "product",
-                "message": (
-                    "Duplicate products were detected. Review the product "
-                    "catalog for better data accuracy."
-                )
-            })
-
-        else:
-
-            recommendations.append({
-                "priority": "low",
-                "area": "product",
-                "message": (
-                    "Product catalog is clean. Analyze product performance "
-                    "with sales data for deeper insights."
-                )
-            })
+        # Repeated product names are normal in transaction data (one row
+        # per sale), so they are not reported as duplicates. Exact duplicate
+        # rows are already removed during cleaning.
+        recommendations.append({
+            "priority": "low",
+            "area": "product",
+            "message": (
+                "Analyze product performance with sales data to see "
+                "which products contribute most to revenue and profit."
+            )
+        })
 
 
     # -------------------------
