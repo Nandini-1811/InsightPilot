@@ -12,7 +12,6 @@ type Summary = {
     highest?: SummaryValue;
     lowest?: SummaryValue;
 
-    // Backward compatibility in case an older response is used
     max?: number;
     min?: number;
 
@@ -24,6 +23,7 @@ type Summary = {
 type Props = {
     title: string;
     summary: Summary;
+    metricKey?: string;
 };
 
 function formatValue(
@@ -58,7 +58,7 @@ function formatValue(
     }
 }
 
-function SummaryCard({
+function SummaryItem({
     label,
     value,
     description,
@@ -68,17 +68,17 @@ function SummaryCard({
     description?: string;
 }) {
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">
+        <div className="min-w-0 border-l border-slate-200 pl-5 first:border-l-0 first:pl-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 {label}
             </p>
 
-            <h3
-                className="mt-2 truncate text-2xl font-bold text-slate-900"
+            <p
+                className="mt-2 truncate text-2xl font-semibold tracking-tight text-slate-950"
                 title={value}
             >
                 {value}
-            </h3>
+            </p>
 
             {description && (
                 <p
@@ -95,12 +95,15 @@ function SummaryCard({
 export default function ChartSummary({
     title,
     summary,
+    metricKey,
 }: Props) {
     const highestValue =
-        summary.highest?.value ?? summary.max;
+        summary.highest?.value ??
+        summary.max;
 
     const lowestValue =
-        summary.lowest?.value ?? summary.min;
+        summary.lowest?.value ??
+        summary.min;
 
     const highestName =
         summary.highest?.name;
@@ -108,26 +111,31 @@ export default function ChartSummary({
     const lowestName =
         summary.lowest?.name;
 
+    const isSnapshotMetric =
+        metricKey === "employees";
+
     return (
-        <section>
+        <section className="border-b border-slate-200 pb-7">
 
-            {/* Heading */}
+            <div className="mb-6">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Metric
+                </p>
 
-            <div className="mb-5">
-                <h2 className="text-2xl font-bold text-slate-900">
-                    {title} Overview
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                    {title}
                 </h2>
 
-                <p className="mt-1 text-slate-500">
-                    Summary statistics for the selected business metric.
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                    {isSnapshotMetric
+                        ? "Snapshot statistics for the selected metric."
+                        : "Summary statistics for the selected business metric."}
                 </p>
             </div>
 
-            {/* Summary Cards */}
+            <div className="grid gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-
-                <SummaryCard
+                <SummaryItem
                     label="Total"
                     value={formatValue(
                         summary.total,
@@ -135,7 +143,7 @@ export default function ChartSummary({
                     )}
                 />
 
-                <SummaryCard
+                <SummaryItem
                     label="Average"
                     value={formatValue(
                         summary.average,
@@ -143,35 +151,44 @@ export default function ChartSummary({
                     )}
                 />
 
-                <SummaryCard
-                    label="Highest Value"
+                <SummaryItem
+                    label={
+                        isSnapshotMetric
+                            ? "Highest snapshot"
+                            : "Highest value"
+                    }
                     value={formatValue(
                         highestValue,
                         summary.unit
                     )}
-                    description={highestName}
+                    description={
+                        !isSnapshotMetric
+                            ? highestName
+                            : undefined
+                    }
                 />
 
-                <SummaryCard
-                    label="Lowest Value"
+                <SummaryItem
+                    label={
+                        isSnapshotMetric
+                            ? "Lowest snapshot"
+                            : "Lowest value"
+                    }
                     value={formatValue(
                         lowestValue,
                         summary.unit
                     )}
-                    description={lowestName}
+                    description={
+                        !isSnapshotMetric
+                            ? lowestName
+                            : undefined
+                    }
                 />
 
-                <SummaryCard
+                <SummaryItem
                     label="Records"
                     value={summary.records.toLocaleString()}
                 />
-
-                {summary.topPerformer && (
-                    <SummaryCard
-                        label="Top Performer"
-                        value={summary.topPerformer}
-                    />
-                )}
 
             </div>
 

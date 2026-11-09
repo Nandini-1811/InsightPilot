@@ -7,6 +7,7 @@ import {
     Cell,
     Tooltip,
     Legend,
+    LabelList,
 } from "recharts";
 
 type Props = {
@@ -28,14 +29,6 @@ const COLORS = [
     "#0d9488",
     "#ea580c",
     "#7c3aed",
-    "#0284c7",
-    "#65a30d",
-    "#c026d3",
-    "#475569",
-    "#059669",
-    "#b91c1c",
-    "#ca8a04",
-    "#6d28d9",
 ];
 
 function formatValue(value: number) {
@@ -47,11 +40,9 @@ function formatValue(value: number) {
 function formatName(value: string) {
     const text = String(value);
 
-    if (text.length <= 22) {
-        return text;
-    }
-
-    return `${text.slice(0, 22)}...`;
+    return text.length <= 18
+        ? text
+        : `${text.slice(0, 18)}...`;
 }
 
 export default function GenericPieChart({
@@ -61,48 +52,44 @@ export default function GenericPieChart({
 }: Props) {
     if (!data || data.length === 0) {
         return (
-            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-500 shadow-sm">
+            <div className="border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
                 No data available.
             </div>
         );
     }
 
-    /*
-     * Labels become unreadable when there are many
-     * slices. Keep them for small datasets only.
-     */
     const showLabels = data.length <= 10;
 
-    /*
-     * Larger datasets need more vertical space because
-     * their legend can contain many items.
-     */
     const chartHeight =
         data.length <= 10
-            ? 520
+            ? 600
             : data.length <= 20
-                ? 580
-                : 650;
+                ? 560
+                : 620;
 
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-
+        <div className="border border-slate-200 bg-white">
             <div
-                style={{ height: `${chartHeight}px` }}
-                className="w-full"
+                style={{
+                    height: `${chartHeight}px`,
+                }}
+                className="w-full p-2"
             >
                 <ResponsiveContainer
                     width="100%"
                     height="100%"
                 >
                     <PieChart>
-
                         <Pie
                             data={data}
                             dataKey={valueKey}
                             nameKey={nameKey}
                             cx="50%"
-                            cy={showLabels ? "43%" : "40%"}
+                            cy={
+                                showLabels
+                                    ? "45%"
+                                    : "40%"
+                            }
                             outerRadius={
                                 data.length <= 10
                                     ? 175
@@ -117,33 +104,62 @@ export default function GenericPieChart({
                                         ? 60
                                         : 55
                             }
-                            paddingAngle={data.length <= 20 ? 2 : 1}
+                            paddingAngle={
+                                data.length <= 20
+                                    ? 2
+                                    : 1
+                            }
                             label={
                                 showLabels
                                     ? (props: any) =>
                                         formatName(
-                                            String(props.name)
+                                            String(
+                                                props.name
+                                            )
                                         )
                                     : false
                             }
-                            labelLine={showLabels}
+                            labelLine={false}
                         >
-                            {data.map((_, index) => (
-                                <Cell
-                                    key={`cell-${index}`}
-                                    fill={
-                                        COLORS[
-                                            index %
-                                            COLORS.length
-                                        ]
+                            {data.map(
+                                (_, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={
+                                            COLORS[
+                                                index %
+                                                    COLORS.length
+                                            ]
+                                        }
+                                    />
+                                )
+                            )}
+
+                            {showLabels && (
+                                <LabelList
+                                    dataKey={valueKey}
+                                    position="inside"
+                                    formatter={(
+                                        value: any
+                                    ) =>
+                                        formatValue(
+                                            Number(value)
+                                        )
                                     }
+                                    fill="#ffffff"
+                                    fontSize={14}
+                                    fontWeight={700}
                                 />
-                            ))}
+                            )}
                         </Pie>
 
                         <Tooltip
-                            formatter={(value: any) =>
-                                formatValue(Number(value))
+                            formatter={(
+                                value: any
+                            ) =>
+                                formatValue(
+                                    Number(value)
+                                )
                             }
                         />
 
@@ -163,27 +179,26 @@ export default function GenericPieChart({
                                 paddingTop: 20,
                                 fontSize: 12,
                             }}
-                            formatter={(value: string) =>
+                            formatter={(
+                                value: string
+                            ) =>
                                 formatName(value)
                             }
                         />
-
                     </PieChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Helpful explanation for large datasets */}
             {data.length > 20 && (
-                <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-slate-600">
-                    <span className="font-semibold text-blue-700">
+                <div className="border-t border-slate-200 px-5 py-4 text-sm text-slate-500">
+                    <span className="font-medium text-slate-700">
                         Large dataset:
                     </span>{" "}
-                    The pie chart contains {data.length} categories.
-                    Use Top 5 or Top 10 for easier comparison.
-                    You can still view every category in the legend.
+                    {data.length} categories are shown.
+                    Use Top 5 or Top 10 for easier
+                    comparison.
                 </div>
             )}
-
         </div>
     );
 }

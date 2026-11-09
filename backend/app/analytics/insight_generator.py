@@ -13,22 +13,42 @@ def _safe_value(value):
 
 def _data_quality_insight(data_quality):
 
-    if data_quality["quality_score"] == 100:
+    missing_cells = data_quality.get("missing_cells", 0)
+    remaining_issues = data_quality.get("remaining_issues", [])
+    quality_score = data_quality.get("quality_score", 0)
+
+    # Missing values are an actual missing-data issue.
+    if missing_cells > 0:
         return {
-            "type": "success",
-            "title": "Excellent Data Quality",
+            "type": "warning",
+            "title": "Missing Data Detected",
             "message": (
-                "No missing values or duplicate rows were detected. "
-                "Your dataset is ready for analysis."
+                f"Your dataset contains {missing_cells} missing values "
+                "which may affect the analysis."
             )
         }
 
+    # No missing values, but other data-quality issues remain.
+    if remaining_issues:
+        issue_count = len(remaining_issues)
+
+        return {
+            "type": "warning",
+            "title": "Data Quality Issues Detected",
+            "message": (
+                f"Your dataset has {issue_count} remaining "
+                "data quality issue(s). "
+                f"Current data quality score is {quality_score:.2f}."
+            )
+        }
+
+    # No remaining issues.
     return {
-        "type": "warning",
-        "title": "Missing Data Detected",
+        "type": "success",
+        "title": "Excellent Data Quality",
         "message": (
-            f"Your dataset contains {data_quality['missing_cells']} "
-            "missing values which may affect the analysis."
+            "No remaining data quality issues were detected. "
+            "Your dataset is ready for analysis."
         )
     }
 

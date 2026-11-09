@@ -9,7 +9,9 @@ type MetricSelectorProps = {
 function formatMetricName(metric: string) {
     return metric
         .replace(/[_-]+/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase());
+        .replace(/\b\w/g, (char) =>
+            char.toUpperCase()
+        );
 }
 
 export default function MetricSelector({
@@ -22,38 +24,45 @@ export default function MetricSelector({
     }
 
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-3">
-                <p className="text-sm font-semibold text-slate-900">
-                    Business Metrics
-                </p>
+        <section className="border-y border-slate-200 py-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-                <p className="mt-1 text-xs text-slate-500">
-                    Select a metric to explore its visualizations.
-                </p>
+                <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                        Business metrics
+                    </p>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                        Select a metric to explore its visualizations.
+                    </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1">
+                    {metrics.map((metric) => {
+                        const active =
+                            metric === selectedMetric;
+
+                        return (
+                            <button
+                                key={metric}
+                                type="button"
+                                onClick={() =>
+                                    onMetricChange(metric)
+                                }
+                                aria-pressed={active}
+                                className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                                    active
+                                        ? "border-slate-900 text-slate-950"
+                                        : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-900"
+                                }`}
+                            >
+                                {formatMetricName(metric)}
+                            </button>
+                        );
+                    })}
+                </div>
+
             </div>
-
-            <div className="flex flex-wrap gap-2">
-                {metrics.map((metric) => {
-                    const active = metric === selectedMetric;
-
-                    return (
-                        <button
-                            key={metric}
-                            type="button"
-                            onClick={() => onMetricChange(metric)}
-                            aria-pressed={active}
-                            className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
-                                active
-                                    ? "bg-blue-600 text-white shadow-md"
-                                    : "border border-slate-200 bg-white text-slate-700 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
-                            }`}
-                        >
-                            {formatMetricName(metric)}
-                        </button>
-                    );
-                })}
-            </div>
-        </div>
+        </section>
     );
 }

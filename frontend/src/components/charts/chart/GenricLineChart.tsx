@@ -14,6 +14,8 @@ type Props = {
     data: any[];
     xKey: string;
     yKey: string;
+    xAxisLabel?: string;
+    yAxisLabel?: string;
 };
 
 function formatNumber(value: number) {
@@ -35,20 +37,20 @@ export default function GenericLineChart({
     data,
     xKey,
     yKey,
+    xAxisLabel = "Category",
+    yAxisLabel = "Value",
 }: Props) {
     if (!data || data.length === 0) {
         return (
-            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-500 shadow-sm">
+            <div className="border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
                 No data available.
             </div>
         );
     }
 
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-
-            <div className="h-[520px] w-full">
-
+        <div className="border border-slate-200 bg-white">
+            <div className="h-[400px] w-full px-5 pb-4 pt-3">
                 <ResponsiveContainer
                     width="100%"
                     height="100%"
@@ -56,13 +58,12 @@ export default function GenericLineChart({
                     <LineChart
                         data={data}
                         margin={{
-                            top: 20,
+                            top: 15,
                             right: 25,
-                            left: 10,
-                            bottom: 100,
+                            left: 15,
+                            bottom: 55,
                         }}
                     >
-
                         <CartesianGrid
                             strokeDasharray="3 3"
                             vertical={false}
@@ -71,13 +72,19 @@ export default function GenericLineChart({
                         <XAxis
                             dataKey={xKey}
                             interval={0}
-                            angle={-45}
+                            angle={-35}
                             textAnchor="end"
-                            height={100}
+                            height={65}
                             tick={{
                                 fontSize: 12,
                             }}
                             tickFormatter={formatLabel}
+                            label={{
+                                value: xAxisLabel,
+                                position: "insideBottom",
+                                offset: -35,
+                                fontSize: 12,
+                            }}
                         />
 
                         <YAxis
@@ -85,6 +92,14 @@ export default function GenericLineChart({
                                 fontSize: 12,
                             }}
                             tickFormatter={formatNumber}
+                            width={55}
+                            label={{
+                                value: yAxisLabel,
+                                angle: -90,
+                                position: "insideLeft",
+                                offset: 5,
+                                fontSize: 12,
+                            }}
                         />
 
                         <Tooltip
@@ -92,8 +107,10 @@ export default function GenericLineChart({
                                 strokeDasharray: "4 4",
                             }}
                             formatter={(value: any) => [
-                                formatNumber(Number(value)),
-                                "Value",
+                                formatNumber(
+                                    Number(value)
+                                ),
+                                yAxisLabel,
                             ]}
                             labelFormatter={(label) =>
                                 String(label)
@@ -104,22 +121,18 @@ export default function GenericLineChart({
                             type="monotone"
                             dataKey={yKey}
                             stroke="#2563eb"
-                            strokeWidth={3}
+                            strokeWidth={2.5}
                             dot={{
                                 r: 4,
-                                fill: "#2563eb",
                             }}
                             activeDot={{
-                                r: 7,
+                                r: 6,
                             }}
                             connectNulls
                         />
-
                     </LineChart>
                 </ResponsiveContainer>
-
             </div>
-
         </div>
     );
 }

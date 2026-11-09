@@ -1,23 +1,35 @@
 from app.analytics.kpi_keywords import KPI_KEYWORDS
 
 
-def detect_kpis(df):
+def detect_kpis(df, column_mapping=None):
+    """
+    Detect business KPIs using the semantic column mapping.
+
+    column_mapping should look like:
+
+        {
+            "Revenue": "revenue",
+            "Employee Count": "employees"
+        }
+
+    The original DataFrame column names are preserved.
+    """
 
     detected_kpis = {
         kpi: []
         for kpi in KPI_KEYWORDS
     }
 
+    column_mapping = column_mapping or {}
+
     columns_lower = [
-        column.strip().lower()
+        str(column).strip().lower()
         for column in df.columns
     ]
 
-
     for column in df.columns:
 
-        column_lower = column.strip().lower()
-
+        column_lower = str(column).strip().lower()
 
         # -------------------------
         # Customer Detection
@@ -25,14 +37,14 @@ def detect_kpis(df):
 
         if column_lower in [
             "customer_id",
-            "customerid"
+            "customerid",
+            "customer id",
         ]:
             detected_kpis["customer"].append({
                 "column": column,
-                "dtype": str(df[column].dtype)
+                "dtype": str(df[column].dtype),
             })
             continue
-
 
         if (
             column_lower == "id"
@@ -43,17 +55,15 @@ def detect_kpis(df):
                     "price",
                     "stock",
                     "category",
-                    "brand"
+                    "brand",
                 ]
             )
         ):
             detected_kpis["customer"].append({
                 "column": column,
-                "dtype": str(df[column].dtype)
+                "dtype": str(df[column].dtype),
             })
             continue
-
-
 
         # -------------------------
         # Product Detection
@@ -64,14 +74,13 @@ def detect_kpis(df):
             "product_id",
             "product_name",
             "item",
-            "sku"
+            "sku",
         ]:
             detected_kpis["product"].append({
                 "column": column,
-                "dtype": str(df[column].dtype)
+                "dtype": str(df[column].dtype),
             })
             continue
-
 
         if (
             column_lower == "name"
@@ -82,42 +91,26 @@ def detect_kpis(df):
                     "stock",
                     "category",
                     "brand",
-                    "sku"
+                    "sku",
                 ]
             )
         ):
             detected_kpis["product"].append({
                 "column": column,
-                "dtype": str(df[column].dtype)
+                "dtype": str(df[column].dtype),
             })
             continue
 
-
-
         # -------------------------
-        # Other KPI Detection
+        # Semantic Mapping
         # -------------------------
 
-        for kpi, keywords in KPI_KEYWORDS.items():
+        canonical_kpi = column_mapping.get(column)
 
-            if kpi in [
-                "customer",
-                "product"
-            ]:
-                continue
-
-
-            if any(
-                keyword in column_lower
-                for keyword in keywords
-            ):
-
-                detected_kpis[kpi].append({
-                    "column": column,
-                    "dtype": str(df[column].dtype)
-                })
-
-                break
-
+        if canonical_kpi:
+            detected_kpis[canonical_kpi].append({
+                "column": column,
+                "dtype": str(df[column].dtype),
+            })
 
     return detected_kpis

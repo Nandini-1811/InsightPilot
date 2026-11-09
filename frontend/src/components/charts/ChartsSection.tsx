@@ -30,10 +30,6 @@ export default function ChartsSection({
     const [selectedFilter, setSelectedFilter] =
         useState<FilterType>("top10");
 
-    /*
-     * Select the first available KPI when
-     * chart data becomes available.
-     */
     useEffect(() => {
         if (metricKeys.length === 0) {
             setSelectedMetric("");
@@ -43,16 +39,16 @@ export default function ChartsSection({
         if (!selectedMetric || !charts[selectedMetric]) {
             setSelectedMetric(metricKeys[0]);
         }
-    }, [metricKeys, selectedMetric, charts]);
+    }, [
+        metricKeys,
+        selectedMetric,
+        charts,
+    ]);
 
     const currentMetric = selectedMetric
         ? charts[selectedMetric]
         : null;
-    
-    /*
-     * Reset chart type and filter whenever
-     * the selected KPI changes.
-     */
+
     useEffect(() => {
         if (!currentMetric) return;
 
@@ -67,7 +63,10 @@ export default function ChartsSection({
 
         setSelectedChart(defaultChart);
         setSelectedFilter(defaultFilter);
-    }, [selectedMetric, currentMetric]);
+    }, [
+        selectedMetric,
+        currentMetric,
+    ]);
 
     if (!currentMetric) {
         return null;
@@ -76,12 +75,15 @@ export default function ChartsSection({
     const availableCharts =
         currentMetric.availableCharts ||
         currentMetric.chartTypes ||
-        Object.keys(currentMetric.charts || {});
+        Object.keys(
+            currentMetric.charts || {}
+        );
+
+    const isSnapshotMetric =
+        selectedMetric === "employees";
 
     return (
         <section className="space-y-8">
-
-            {/* KPI Selector */}
 
             <MetricSelector
                 metrics={metricKeys}
@@ -89,30 +91,37 @@ export default function ChartsSection({
                 onMetricChange={setSelectedMetric}
             />
 
-            {/* Selected KPI Summary */}
-
             <ChartSummary
                 title={currentMetric.title}
                 summary={currentMetric.summary}
+                metricKey={selectedMetric}
             />
 
-            {/* Chart Controls */}
+            {isSnapshotMetric ? (
+                <ChartRenderer
+                    metric={currentMetric}
+                    chartType={selectedChart}
+                    filter={selectedFilter}
+                    metricKey={selectedMetric}
+                />
+            ) : (
+                <>
+                    <ChartToolbar
+                        availableCharts={availableCharts}
+                        selectedChart={selectedChart}
+                        onChartChange={setSelectedChart}
+                        selectedFilter={selectedFilter}
+                        onFilterChange={setSelectedFilter}
+                    />
 
-            <ChartToolbar
-                availableCharts={availableCharts}
-                selectedChart={selectedChart}
-                onChartChange={setSelectedChart}
-                selectedFilter={selectedFilter}
-                onFilterChange={setSelectedFilter}
-            />
-
-            {/* Chart */}
-
-            <ChartRenderer
-                metric={currentMetric}
-                chartType={selectedChart}
-                filter={selectedFilter}
-            />
+                    <ChartRenderer
+                        metric={currentMetric}
+                        chartType={selectedChart}
+                        filter={selectedFilter}
+                        metricKey={selectedMetric}
+                    />
+                </>
+            )}
 
         </section>
     );

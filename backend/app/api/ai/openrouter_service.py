@@ -5,67 +5,104 @@ from openai import OpenAI
 from app.core.config import settings
 
 
-client = OpenAI(
-    api_key=settings.OPENROUTER_API_KEY,
-    base_url="https://openrouter.ai/api/v1",
-    timeout=30,
-)
+class AIConfigurationError(RuntimeError):
+    """Raised when the AI provider is not configured correctly."""
 
 
-# Free-tier OpenRouter models get deprecated/rotated frequently.
-# Try a small ordered list instead of hardcoding a single slug, so one
-# deprecation doesn't take down the whole AI Summary feature again.
-CANDIDATE_MODELS = [
-    "openrouter/free",          # OpenRouter's own auto-router across free models
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "google/gemini-2.0-flash-exp:free",
-]
+class AIProviderError(RuntimeError):
+    """Raised when the AI provider cannot produce a usable response."""
 
 
-def generate_response(prompt: str):
+MODEL = "openrouter/free"
+
+# The free model occasionally returns an empty or malformed answer, so a
+# failed attempt is retried before giving up.
+MAX_ATTEMPTS = 3
+
+
+def _request_summary(client: OpenAI, prompt: str) -> dict:
+    """Make a single request and return the parsed JSON."""
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            response_format={
+                "type": "json_object",
+            },
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a Senior Business Analyst.\n"
+                        "Return ONLY valid JSON.\n"
+                        "Never explain your reasoning.\n"
+                        "Never wrap JSON in markdown."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+        )
+
+    except Exception as exc:
+        raise AIProviderError(
+            f"OpenRouter could not generate the AI summary: {exc}"
+        ) from exc
+
+    choices = getattr(response, "choices", None)
+
+    if not choices:
+        raise AIProviderError(
+            "OpenRouter returned an empty AI response."
+        )
+
+    content = choices[0].message.content
+
+    if not content:
+        raise AIProviderError(
+            "OpenRouter returned an empty AI response."
+        )
+
+    try:
+        return json.loads(content)
+
+    except json.JSONDecodeError as exc:
+        raise AIProviderError(
+            "OpenRouter returned a response that was not valid JSON."
+        ) from exc
+
+
+def generate_response(prompt: str) -> dict:
     """
     Generate an AI executive summary.
-    Returns a Python dictionary.
+
+    The AI response must be valid JSON because the rest of the
+    application expects structured data.
     """
+
+    api_key = settings.OPENROUTER_API_KEY
+
+    if not api_key:
+        raise AIConfigurationError(
+            "AI summaries are not configured. "
+            "Set OPENROUTER_API_KEY in the backend environment."
+        )
+
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://openrouter.ai/api/v1",
+        timeout=30,
+    )
 
     last_error = None
 
-    for model in CANDIDATE_MODELS:
+    for _ in range(MAX_ATTEMPTS):
         try:
-            response = client.chat.completions.create(
-                model=model,
-                response_format={
-                    "type": "json_object"
-                },
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a Senior Business Analyst.\n"
-                            "Return ONLY valid JSON.\n"
-                            "Never explain your reasoning.\n"
-                            "Never wrap JSON in markdown."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    },
-                ],
-            )
+            return _request_summary(client, prompt)
 
-            message = response.choices[0].message
+        except AIProviderError as exc:
+            last_error = exc
 
-            if message.content:
-                return json.loads(message.content)
-
-            last_error = RuntimeError(f"{model} returned an empty response.")
-
-        except json.JSONDecodeError as e:
-            last_error = RuntimeError(f"AI returned invalid JSON from {model}: {e}")
-
-        except Exception as e:
-            last_error = RuntimeError(f"OpenRouter API Error ({model}): {e}")
-            continue  # try the next candidate model
-
-    raise last_error or RuntimeError("All OpenRouter model attempts failed.")
+    raise last_error
